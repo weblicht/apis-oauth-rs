@@ -122,7 +122,7 @@ class ApisResourceServer
                 );
             }
 
-            $tokenIntrospection = new TokenIntrospection($responseData);
+            $tokenIntrospection = new ApisTokenIntrospection($responseData);
 
             // check if the token was active
             if (!$tokenIntrospection->getActive()) {

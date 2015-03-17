@@ -26,36 +26,11 @@ class TokenIntrospection
 
     public function __construct(array $response)
     {
-        if (!isset($response['active']) || !is_bool($response['active'])) {
-            throw new TokenIntrospectionException("active key should be set and its value a boolean");
-        }
 
         if (isset($response['expires_in']) && (!is_int($response['exp']) || 0 >= $response['exp'])) {
             throw new TokenIntrospectionException("exp value must be non negative integer");
         }
 
-        if (isset($response['iat']) && (!is_int($response['iat']) || 0 > $response['iat'])) {
-            throw new TokenIntrospectionException("iat value must be positive integer");
-        }
-
-        // check whether token was not issued in the future
-        if (isset($response['iat'])) {
-            if (time() < $response['iat']) {
-                throw new TokenIntrospectionException("token issued in the future");
-            }
-        }
-
-        // check whether token did not expire before it was issued
-        if (isset($response['exp']) && isset($response['iat'])) {
-            if ($response['exp'] < $response['iat']) {
-                throw new TokenIntrospectionException("token expired before it was issued");
-            }
-        }
-
-        // check whether provided scope is an array
-        if (isset($response['scope']) && !is_string($response['scope'])) {
-                throw new TokenIntrospectionException("scope must be string");
-        }
 
         $this->response = $response;
     }
@@ -66,7 +41,7 @@ class TokenIntrospection
      */
     public function getActive()
     {
-        return $this->response['active'];
+        return isset($this->response['expires_in']);
     }
 
     /**
@@ -76,7 +51,7 @@ class TokenIntrospection
      */
     public function getExpiresAt()
     {
-        return $this->getKeyValue('exp');
+        return $this->getKeyValue('expires_at');
     }
 
     /**
@@ -98,12 +73,13 @@ class TokenIntrospection
      */
     public function getScope()
     {
-        $scopeValue = $this->getKeyValue('scope');
+        $scopeValue = $this->getKeyValue('scopes');
+        $scopeString = join(" ", $scopeValue);
         if (false === $scopeValue) {
             return new Scope();
         }
 
-        return Scope::fromString($scopeValue);
+        return Scope::fromString($scopeString);
     }
 
     /**
@@ -121,7 +97,16 @@ class TokenIntrospection
      */
     public function getSub()
     {
-        return $this->getKeyValue('sub');
+        $principal = $this->getKeyValue('principal');
+        if (false === $principal) {
+            return false;
+        } else {
+            if (isset($principal['name'])) {
+                return $principal['name'];
+            } else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -130,7 +115,7 @@ class TokenIntrospection
      */
     public function getAud()
     {
-        return $this->getKeyValue('aud');
+        return $this->getKeyValue('audience');
     }
 
     /**
