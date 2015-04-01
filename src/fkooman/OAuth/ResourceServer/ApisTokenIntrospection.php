@@ -20,15 +20,14 @@ namespace fkooman\OAuth\ResourceServer;
 
 use fkooman\OAuth\Common\Scope;
 
-class TokenIntrospection
+class ApisTokenIntrospection
 {
     private $response;
 
     public function __construct(array $response)
     {
-
-        if (isset($response['expires_in']) && (!is_int($response['exp']) || 0 >= $response['exp'])) {
-            throw new TokenIntrospectionException("exp value must be non negative integer");
+        if (isset($response['expires_in']) && 0 > $response['exp']) {
+            throw new TokenIntrospectionException("exp value must be non negative");
         }
 
 

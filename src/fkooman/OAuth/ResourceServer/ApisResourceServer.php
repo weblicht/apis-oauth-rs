@@ -137,7 +137,6 @@ class ApisResourceServer
 
             return $tokenIntrospection;
         } catch (\Guzzle\Common\Exception\RuntimeException $e) {
-            // error when contacting endpoint, or no JSON data returned
             throw new ResourceServerException(
                 "internal_server_error",
                 "unable to contact introspection endpoint or malformed response data"
